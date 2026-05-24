@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>書籍管理アプリ - 研修課題</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>📚 書籍管理アプリ</h1>
+    <p class="subtitle">研修課題: 動かないアプリを修正してください</p>
+  </header>
+
+  <main class="main">
+    <section class="search-section">
+      <label for="search-input" class="visually-hidden">検索キーワード</label>
+      <input
+        type="text"
+        id="search-input"
+        placeholder="タイトル or 著者で検索"
+      />
+      <button id="search-button" type="button">検索</button>
+      <button id="reset-button" type="button">リセット</button>
+    </section>
+
+    <div class="content">
+      <section class="book-list-section">
+        <h2>書籍一覧</h2>
+        <div id="book-list" class="book-list">読み込み中...</div>
+      </section>
+
+      <aside class="cart-section">
+        <h2>🛒 カート</h2>
+        <ul id="cart-list" class="cart-list">
+          <li class="empty">カートは空です</li>
+        </ul>
+        <p class="total">合計: <span id="total-price">0</span> 円</p>
+      </aside>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
