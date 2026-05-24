@@ -1,0 +1,7 @@
+# 正解ファイル（講師用）
+answer/
+
+# OS / Editor
+.DS_Store
+.vscode/
+.idea/
