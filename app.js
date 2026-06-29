@@ -35,10 +35,16 @@ let cart = [];
 
 // --- 初期ロード ---
 async function loadBooks() {
-  allBooks = fetchBooks();
-  renderBookList(allBooks);
+   const listEl = document.getElementById('book-list');
+  listEl.textContent = '読み込み中...'; // ローディング表示
+  try {
+    const books = await fetchBooks();
+    allBooks = books;
+    renderBookList(allBooks);
+  } catch (error) {
+    listEl.textContent = `⚠️ ${error.message}`; //エラーメッセージ表示
+  }
 }
-
 // --- 検索 ---
 // 入力されたキーワードでタイトル or 著者を絞り込んで一覧を再描画する
 function searchBooks(keyword) {
@@ -47,7 +53,7 @@ function searchBooks(keyword) {
     return;
   }
   const filtered = allBooks.filter(book =>
-    book.title.includes(keyword) && book.author.includes(keyword)
+    book.title.includes(keyword) || book.author.includes(keyword) //andではなくor
   );
   renderBookList(filtered);
 }
@@ -62,20 +68,20 @@ function renderBookList(books) {
   }
 
   const html = books.map(book => {
-    const { title, name, price, stock } = book;
+    const { title, author, price, stock } = book; //nameではなくauthor
 
-    const stockText = stock || '在庫なし';
+    const stockText = stock //0冊と出す
     const stockClass = stock === 0 ? 'stock-out' : '';
     const disabledAttr = stock === 0 ? 'disabled' : '';
 
     return '<div class="book">' +
-             '<h3>${title}</h3>' +
-             '<p>著者: ${name}</p>' +
-             '<p class="price">${price}円</p>' +
-             '<p class="' + stockClass + '">在庫: ${stockText}冊</p>' +
+             `<h3>${title}</h3>` +
+             `<p>著者: ${author}</p>` + //nameでなくauthor
+             `<p class="price">${price}円</p>` +
+             `<p class="${stockClass}">在庫: ${stockText}冊</p>` + //``内は＄｛｝で、+いらない
              '<button onclick="addToCart(' + book.id + ')" ' + disabledAttr + '>カートに追加</button>' +
            '</div>';
-  });
+  }).join('');
 
   listEl.innerHTML = html;
 }
@@ -92,7 +98,7 @@ function addToCart(bookId) {
 function removeFromCart(bookId) {
   const index = cart.findIndex(b => b.id === bookId);
   if (index === -1) return;
-  cart.splice(index);
+  cart.splice(index,1);//全部消えてしまうため修正
   renderCart();
 }
 
