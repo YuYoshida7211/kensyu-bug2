@@ -35,7 +35,12 @@ let cart = [];
 
 // --- 初期ロード ---
 async function loadBooks() {
-  allBooks = await fetchBooks();
+  try {
+    allBooks = await fetchBooks();
+  } catch (error) {
+    console.error(error.message);
+    return;
+  }
   renderBookList(allBooks);
 }
 
