@@ -82,10 +82,9 @@ function renderBookList(books) {
       `<p class="${stockClass}">在庫: ${stockText}冊</p>` +
       `<button onclick="addToCart(${book.id})" ${disabledAttr}>カートに追加</button>` +
       `</div>`;
-  });
-
+  }).join(``)
   listEl.innerHTML = html;
-}
+};
 
 // --- カートに追加 ---
 function addToCart(bookId) {
