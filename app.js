@@ -35,8 +35,12 @@ let cart = [];
 
 // --- 初期ロード ---
 async function loadBooks() {
-  allBooks = fetchBooks();
-  renderBookList(allBooks);
+  try {
+    allBooks = await fetchBooks();
+    renderBookList(allBooks);
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 // --- 検索 ---
@@ -47,7 +51,7 @@ function searchBooks(keyword) {
     return;
   }
   const filtered = allBooks.filter(book =>
-    book.title.includes(keyword) && book.author.includes(keyword)
+    book.title.includes(keyword) || book.author.includes(keyword)
   );
   renderBookList(filtered);
 }
@@ -62,22 +66,22 @@ function renderBookList(books) {
   }
 
   const html = books.map(book => {
-    const { title, name, price, stock } = book;
+    const { title, author, price, stock } = book;
 
-    const stockText = stock || '在庫なし';
+    const stockText = stock || '0';
     const stockClass = stock === 0 ? 'stock-out' : '';
     const disabledAttr = stock === 0 ? 'disabled' : '';
 
     return '<div class="book">' +
-             '<h3>${title}</h3>' +
-             '<p>著者: ${name}</p>' +
-             '<p class="price">${price}円</p>' +
-             '<p class="' + stockClass + '">在庫: ${stockText}冊</p>' +
+             '<h3>' + title + '</h3>' +
+             '<p>著者: ' + author + '</p>' +
+             '<p class="price">' + price + '円</p>' +
+             '<p class="' + stockClass + '">在庫: ' + stockText + '冊</p>' +
              '<button onclick="addToCart(' + book.id + ')" ' + disabledAttr + '>カートに追加</button>' +
            '</div>';
   });
 
-  listEl.innerHTML = html;
+  listEl.innerHTML = html.join('');
 }
 
 // --- カートに追加 ---
@@ -92,7 +96,7 @@ function addToCart(bookId) {
 function removeFromCart(bookId) {
   const index = cart.findIndex(b => b.id === bookId);
   if (index === -1) return;
-  cart.splice(index);
+  cart.splice(index,1);
   renderCart();
 }
 
