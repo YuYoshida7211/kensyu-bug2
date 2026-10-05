@@ -34,10 +34,16 @@ let allBooks = [];
 let cart = [];
 
 // --- 初期ロード ---
+// awaitもれとエラー表示があるためtry...catchを追加
 async function loadBooks() {
-  allBooks = fetchBooks();
-  renderBookList(allBooks);
-}
+  const loading = document.getElementById("book-list");
+  try{
+    allBooks = await fetchBooks();
+    renderBookList(allBooks);
+  }catch(error){
+    loading.textContent = "⚠️ サーバーエラー: 書籍データの取得に失敗しました";
+  }
+};
 
 // --- 検索 ---
 // 入力されたキーワードでタイトル or 著者を絞り込んで一覧を再描画する
@@ -46,8 +52,9 @@ function searchBooks(keyword) {
     renderBookList(allBooks);
     return;
   }
+  // &&かつではなく||どちらかに変更
   const filtered = allBooks.filter(book =>
-    book.title.includes(keyword) && book.author.includes(keyword)
+    book.title.includes(keyword) || book.author.includes(keyword)
   );
   renderBookList(filtered);
 }
@@ -60,21 +67,21 @@ function renderBookList(books) {
     listEl.textContent = '書籍が見つかりませんでした';
     return;
   }
-
+// オブジェクトはtitle, author,price, stockで取得する
   const html = books.map(book => {
-    const { title, name, price, stock } = book;
-
-    const stockText = stock || '在庫なし';
+    const { title, author, price, stock } = book;
+    // 在庫なしを整数判定して「在庫なし冊」と表示されるのを0冊にする
+    const stockText = Number.isInteger(stock) ? stock : '在庫なし';
     const stockClass = stock === 0 ? 'stock-out' : '';
     const disabledAttr = stock === 0 ? 'disabled' : '';
 
-    return '<div class="book">' +
-             '<h3>${title}</h3>' +
-             '<p>著者: ${name}</p>' +
-             '<p class="price">${price}円</p>' +
-             '<p class="' + stockClass + '">在庫: ${stockText}冊</p>' +
-             '<button onclick="addToCart(' + book.id + ')" ' + disabledAttr + '>カートに追加</button>' +
-           '</div>';
+    return `<div class="book">` +
+      `<h3>${title}</h3>` +
+      `<p>著者: ${author}</p>` +
+      `<p class="price">${price}円</p>` +
+      `<p class="${stockClass}">在庫: ${stockText}冊</p>` +
+      `<button onclick="addToCart(${book.id})" ${disabledAttr}>カートに追加</button>` +
+      `</div>`;
   });
 
   listEl.innerHTML = html;
@@ -89,10 +96,11 @@ function addToCart(bookId) {
 }
 
 // --- カートから削除 ---
+// 削除個数1件だけ削除
 function removeFromCart(bookId) {
   const index = cart.findIndex(b => b.id === bookId);
   if (index === -1) return;
-  cart.splice(index);
+  cart.splice(index,1);
   renderCart();
 }
 
