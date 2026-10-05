@@ -39,6 +39,7 @@ async function loadBooks() {
     allBooks = await fetchBooks();
     renderBookList(allBooks);
   } catch (error) {
+    renderBookList(allBooks);
     alert(error.message);
   }
 }
@@ -68,7 +69,7 @@ function renderBookList(books) {
   const html = books.map(book => {
     const { title, author, price, stock } = book;
 
-    const stockText = stock || '0';
+    const stockText = stock || 0;
     const stockClass = stock === 0 ? 'stock-out' : '';
     const disabledAttr = stock === 0 ? 'disabled' : '';
 
