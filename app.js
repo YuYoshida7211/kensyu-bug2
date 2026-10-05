@@ -74,7 +74,7 @@ function renderBookList(books) {
     const stockText = Number.isInteger(stock) ? stock : '在庫なし';
     const stockClass = stock === 0 ? 'stock-out' : '';
     const disabledAttr = stock === 0 ? 'disabled' : '';
-
+    // テンプレートリテラルの修正(')→(`)と読み込まれてない文字列を修正
     return `<div class="book">` +
       `<h3>${title}</h3>` +
       `<p>著者: ${author}</p>` +
