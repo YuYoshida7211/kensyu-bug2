@@ -30,54 +30,92 @@ function fetchBooks() {
 // アプリ本体（この下にバグがいくつか潜んでいます）
 // ============================================================
 
+// ---- 定数 ----
+const OUT_OF_STOCK = 0;          // 在庫切れを表す在庫数
+const REMOVE_COUNT = 1;          // カートから一度に削除する件数
+const AMOUNT_TOTAL = 0;         // 合計金額の初期値
+
+const CLASS_NAMES = {
+  STOCK_OUT: 'stock-out',
+  ERROR: 'error',
+  EMPTY: 'empty',
+};
+
+const DOM_EL = {
+  BOOK_LIST: 'book-list',
+  CART_LIST: 'cart-list',
+  TOTAL_PRICE: 'total-price',
+  SEARCH_INPUT: 'search-input',
+  SEARCH_BUTTON: 'search-button',
+  RESET_BUTTON: 'reset-button',
+};
+
 let allBooks = [];
 let cart = [];
 
 // --- 初期ロード ---
 async function loadBooks() {
-  allBooks = fetchBooks();
-  renderBookList(allBooks);
+  try {
+    allBooks = await fetchBooks();
+    renderBookList(allBooks);
+  } catch (error) {
+    console.error(error);
+    renderError(error.message);
+  }
+}
+
+// --- エラー表示 ---
+function renderError(message) {
+  const listEl = document.getElementById(DOM_EL.BOOK_LIST);
+  const errorEl = document.createElement('p');
+  errorEl.className = CLASS_NAMES.ERROR;
+  errorEl.textContent = message;
+  listEl.replaceChildren(errorEl);
 }
 
 // --- 検索 ---
-// 入力されたキーワードでタイトル or 著者を絞り込んで一覧を再描画する
 function searchBooks(keyword) {
   if (!keyword) {
     renderBookList(allBooks);
     return;
   }
+  const lower = keyword.toLowerCase();
   const filtered = allBooks.filter(book =>
-    book.title.includes(keyword) && book.author.includes(keyword)
+    book.title.toLowerCase().includes(lower) ||
+    book.author.toLowerCase().includes(lower)
   );
   renderBookList(filtered);
 }
 
 // --- 一覧描画 ---
 function renderBookList(books) {
-  const listEl = document.getElementById('book-list');
+  const listEl = document.getElementById(DOM_EL.BOOK_LIST);
 
   if (books.length === 0) {
-    listEl.textContent = '書籍が見つかりませんでした';
+    listEl.textContent = '書籍が見つかりませんでした。';
     return;
   }
 
   const html = books.map(book => {
-    const { title, name, price, stock } = book;
+    const { id, title, author, price, stock } = book;
 
-    const stockText = stock || '在庫なし';
-    const stockClass = stock === 0 ? 'stock-out' : '';
-    const disabledAttr = stock === 0 ? 'disabled' : '';
+    const stockText = stock ?? '在庫なし';
+    const isOutOfStock = stock === OUT_OF_STOCK;
+    const stockClass = isOutOfStock ? CLASS_NAMES.STOCK_OUT : '';
+    const disabledAttr = isOutOfStock ? 'disabled' : '';
 
-    return '<div class="book">' +
-             '<h3>${title}</h3>' +
-             '<p>著者: ${name}</p>' +
-             '<p class="price">${price}円</p>' +
-             '<p class="' + stockClass + '">在庫: ${stockText}冊</p>' +
-             '<button onclick="addToCart(' + book.id + ')" ' + disabledAttr + '>カートに追加</button>' +
-           '</div>';
+    return `
+      <div class="book">
+        <h3>${title}</h3>
+        <p>著者: ${author}</p>
+        <p class="price">${price}円</p>
+        <p class="${stockClass}">在庫: ${stockText}冊</p>
+        <button onclick="addToCart(${id})" ${disabledAttr}>カートに追加</button>
+      </div>
+    `;
   });
 
-  listEl.innerHTML = html;
+  listEl.innerHTML = html.join('');
 }
 
 // --- カートに追加 ---
@@ -92,18 +130,18 @@ function addToCart(bookId) {
 function removeFromCart(bookId) {
   const index = cart.findIndex(b => b.id === bookId);
   if (index === -1) return;
-  cart.splice(index);
+  cart.splice(index, REMOVE_COUNT);
   renderCart();
 }
 
 // --- カート描画 ---
 function renderCart() {
-  const listEl = document.getElementById('cart-list');
-  const totalEl = document.getElementById('total-price');
+  const listEl = document.getElementById(DOM_EL.CART_LIST);
+  const totalEl = document.getElementById(DOM_EL.TOTAL_PRICE);
 
   if (cart.length === 0) {
     listEl.innerHTML = '<li class="empty">カートは空です</li>';
-    totalEl.textContent = '0';
+    totalEl.textContent = AMOUNT_TOTAL;
     return;
   }
 
@@ -114,18 +152,18 @@ function renderCart() {
     </li>
   `).join('');
 
-  const total = cart.reduce((sum, book) => sum + book.price, 0);
+  const total = cart.reduce((sum, book) => sum + book.price, AMOUNT_TOTAL);
   totalEl.textContent = total;
 }
 
 // --- イベント登録 ---
-document.getElementById('search-button').addEventListener('click', () => {
-  const keyword = document.getElementById('search-input').value.trim();
+document.getElementById(DOM_EL.SEARCH_BUTTON).addEventListener('click', () => {
+  const keyword = document.getElementById(DOM_EL.SEARCH_INPUT).value.trim();
   searchBooks(keyword);
 });
 
-document.getElementById('reset-button').addEventListener('click', () => {
-  document.getElementById('search-input').value = '';
+document.getElementById(DOM_EL.RESET_BUTTON).addEventListener('click', () => {
+  document.getElementById(DOM_EL.SEARCH_INPUT).value = '';
   renderBookList(allBooks);
 });
 
